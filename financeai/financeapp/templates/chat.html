@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Inter for main UI, Noto Devanagari as Hindi fallback -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+Devanagari&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Junior CA Assistant</title>
+
+    <!-- Tailwind config: keep "parihar" but map it to gray/black theme like your new UI -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'parihar': {
+                            50: '#f9fafb',   // gray-50
+                            100: '#f3f4f6',  // gray-100
+                            200: '#e5e7eb',  // gray-200
+                            500: '#111827',  // gray-900 (primary)
+                            600: '#111827',
+                            700: '#111827',
+                            800: '#111827',
+                            900: '#000000'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-gentle': 'bounce 2s infinite',
+                        'gradient': 'gradient 8s ease infinite',
+                    },
+                    keyframes: {
+                        gradient: {
+                            '0%, 100%': { 'background-position': '0% 50%' },
+                            '50%': { 'background-position': '100% 50%' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Global font like the new UI */
+        * {
+            font-family: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .w-10 {
+            width: 2.5rem !important;
+        }
+        
+        /* Old gradient class kept but now your main UI is mostly white/gray */
+        .gradient-bg {
+            background: linear-gradient(-45deg, #111827, #4b5563, #9ca3af, #e5e7eb);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .chat-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #e5e7eb transparent;
+        }
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 3px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #d1d5db;
+        }
+
+        @keyframes typing {
+            0%, 20% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            80%, 100% { transform: scale(1); }
+        }
+        .typing-dot {
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .message-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-glow {
+            filter: drop-shadow(0 0 12px rgba(17, 24, 39, 0.35));
+        }
+
+        .imgg {
+            width: 100px;
+        }
+
+        .logo-light {
+            display: block;
+        }
+        .logo-dark {
+            display: none;
+        }
+       
+        
+        @media (max-width: 1024px) {
+            #sidebar { width: 70%; max-width: 250px; }
+            .chat-item { padding: 2px; }
+            #messages-container { padding: 2px; }
+            .max-w-4xl { max-width: 100%; }
+            #text-input { padding: 8px; font-size: 14px; }
+            #send-button { width: 8%; height: 40px; }
+            .flex-1 { flex: 1 0 0%; }
+        }
+
+        @media (max-width: 640px) {
+            .sidesade { left: 70px; position: relative; }
+            #sidebar { width: 80%; max-width: 200px; }
+            #mobile-menu-button { top: 10px; left: 10px; }
+            #text-input { padding: 6px; font-size: 12px; }
+            #send-button { width: 10%; height: 35px; }
+            .chat-item h3 { font-size: 12px; }
+            .chat-item .flex.items-center { font-size: 10px; }
+        }
+    </style>
+</head>
+
+<!-- Main body now plain white (like new design) rather than gray/gradient -->
+<body class="bg-white ">
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg text-gray-700 hover:bg-gray-50 transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed inset-y-0 left-0 z-40 w-80 bg-white  border-r border-gray-200  shadow-sm transform -translate-x-full lg:translate-x-0 lg:static lg:inset-0 transition-transform duration-300 ease-in-out flex flex-col">
+
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-gray-200 ">
+                <div class="flex items-center justify-between space-x-2 mb-4">
+                    <div class="relative flex items-center space-x-2">
+                        <!-- You can swap logos later if you want full black-square F logo, keeping your existing for now -->
+                        <img src="https://i.ibb.co/s9hYcgbN/logo1-1.png" alt="Junior CA Logo" class="block  w-32 imgg object-contain">
+                        <img src="https://i.ibb.co/j9wndrXd/logot.png" alt="Junior CA Logo" class="hidden  w-32 imgg object-contain">
+                    </div>
+
+                    <!-- Close Button for Mobile -->
+                    <button id="close-sidebar-button" class="lg:hidden p-2 text-gray-600  hover:text-parihar-500 hover:bg-gray-100  rounded-lg transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+
+                <button id="new-chat" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5 px-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-md text-sm">
+                    <i class="fas fa-plus mr-1"></i>
+                    New Junior CA Chat
+                </button>
+            </div>
+
+            <!-- Chat List -->
+            <div class="flex-1 overflow-y-auto chat-scroll p-2 bg-white ">
+                <div class="space-y-1">
+                    {% for session in chat_sessions %}
+                        <div class="chat-item group relative bg-gray-50  hover:bg-gray-100  rounded-xl p-2 cursor-pointer transition-all duration-200 {% if session.id == active_session_id %}bg-gray-100  border-2 border-parihar-200 dark:border-parihar-700{% endif %}"
+                             data-session-id="{{ session.id }}">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-medium text-gray-900  truncate text-sm mb-1">
+                                        {{ session.title|default:"New Finance Chat" }}
+                                    </h3>
+                                    <div class="flex items-center text-xs text-gray-500 ">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span>{{ session.updated_at|date:"M d, Y H:i" }}</span>
+                                    </div>
+                                </div>
+
+                                <button class="delete-chat-button opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                                        data-session-id="{{ session.id }}"
+                                        title="Delete chat">
+                                    <i class="fas fa-trash-alt text-sm"></i>
+                                </button>
+
+                            </div>
+
+                            {% if session.id == active_session_id %}
+                                <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-parihar-500 rounded-r-full"></div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-2 border-t border-gray-200  bg-white ">
+                <div class="flex items-center space-x-1 text-xs text-gray-500 ">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Junior CA is online</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar Overlay for Mobile -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-40 z-30 lg:hidden hidden"></div>
+
+        <!-- Main Chat Area -->
+        <div class="flex-1 flex flex-col min-w-0 bg-white">
+
+            <!-- Chat Header -->
+            <div class="bg-white  border-b border-gray-200  p-2 lg:p-4">
+                <div class="flex items-center justify-between max-w-4xl mx-auto">
+
+                    <div class="flex items-center space-x-2">
+                        <div class="sidesade">
+                            <h2 class="text-lg font-semibold text-gray-900 ">Junior CA</h2>
+                            <p class="text-sm text-gray-500 ">Your AI Chartered Accountant</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-1">
+                        <button id="language-toggle-button" class="p-2 text-gray-500 hover:text-parihar-500 hover:bg-gray-100  rounded-lg transition-colors" title="Toggle language (English/Hindi)">
+                            <i class="fas fa-globe"></i>
+                            <span id="language-label" class="ml-1 text-sm">EN</span>
+                        </button>
+                        <button id="speech-toggle-button" class="p-2 text-gray-500 hover:text-parihar-500 hover:bg-gray-100  rounded-lg transition-colors" title="Toggle voice output">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="messages-container" class="flex-1 overflow-y-auto chat-scroll p-2 lg:p-4 bg-gray-50">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="message-slide-in mb-4 {% if message.is_user %}flex justify-end{% else %}flex justify-start{% endif %}">
+                            <div class="flex items-start space-x-2 max-w-4xl">
+
+                                {% if not message.is_user %}
+                                    <div class="flex-shrink-0">
+                                        <div class="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center">
+                                            <span class="text-white font-bold text-xs">CA</span>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <div class="flex flex-col {% if message.is_user %}items-end{% else %}items-start{% endif %}">
+                                    <div class="{% if message.is_user %}bg-gray-900 text-white{% else %}bg-white text-gray-900  shadow-md border border-gray-200 {% endif %} rounded-2xl px-3 py-2 max-w-md lg:max-w-2xl">
+
+                                        {% if message.text %}
+                                            <p class="text-sm leading-relaxed">{{ message.text }}</p>
+                                        {% endif %}
+
+                                        {% if message.file_data %}
+                                        <div class="mt-2">
+                                            {% if message.file_mime_type|slice:":6" == "image/" %}
+                                                <div class="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                                    <img src="data:{{ message.file_mime_type }};base64,{{ message.file_data }}"
+                                                         alt="Uploaded content"
+                                                         class="rounded-lg max-w-full h-auto shadow-md">
+                                                    <p class="text-green-700 dark:text-green-300 text-xs mt-1 font-semibold">
+                                                        Image uploaded successfully
+                                                    </p>
+                                                </div>
+                                    
+                                            {% elif message.file_mime_type == "application/pdf" %}
+                                                <div class="flex items-center space-x-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                                    <div class="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
+                                                        <i class="fas fa-file-pdf text-green-500 text-sm"></i>
+                                                    </div>
+                                                    <div>
+                                                        <p class="font-medium text-green-800 dark:text-green-200 text-xs">PDF Document</p>
+                                                        <p class="text-green-600 dark:text-green-300 text-xs">Uploaded successfully</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    </div>
+
+                                    <span class="text-xs text-gray-400 mt-1 px-1">
+                                        {% if message.is_user %}You{% else %}Junior CA{% endif %}
+                                    </span>
+
+                                </div>
+
+                                {% if message.is_user %}
+                                    <div class="flex-shrink-0">
+                                        <div class="w-7 h-7 bg-gray-200  rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-user text-gray-600  text-xs"></i>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div id="empty-state" class="flex-1 flex items-center justify-center">
+                        <div class="text-center max-w-md mx-auto">
+                            <div class="relative mb-6">
+                                <div class="w-20 h-20 mx-auto bg-gray-900 rounded-3xl flex items-center justify-center logo-glow">
+                                    <span class="text-white font-bold text-3xl">CA</span>
+                                </div>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Junior CA</h3>
+                            <p class="text-gray-600 mb-4">
+                                Your intelligent CA-style assistant is ready to help you.
+                                Upload your balance sheet, P&amp;L, or ask any finance question!
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Loading Indicator -->
+                <div class="loading-indicator hidden mb-4">
+                    <div class="flex justify-start">
+                        <div class="flex items-start space-x-2 max-w-4xl">
+                            <div class="flex-shrink-0">
+                                <div class="w-7 h-7 bg-gray-900 rounded-lg flex items-center justify-center animate-pulse-slow">
+                                    <span class="text-white font-bold text-xs">F</span>
+                                </div>
+                            </div>
+                            <div class="bg-white  rounded-2xl px-3 py-2 shadow-md border border-gray-200 ">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-sm text-gray-700 ">Junior CA is analyzing</span>
+                                    <div class="flex space-x-1">
+                                        <div class="w-1.5 h-1.5 bg-gray-900 rounded-full typing-dot"></div>
+                                        <div class="w-1.5 h-1.5 bg-gray-900 rounded-full typing-dot"></div>
+                                        <div class="w-1.5 h-1.5 bg-gray-900 rounded-full typing-dot"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Input Container -->
+            <div class="bg-white  border-t border-gray-200  p-2 lg:p-4">
+                <div class="max-w-4xl mx-auto">
+                    <form id="chat-form" class="relative">
+                        <input type="file" id="file-input" accept="image/*,application/pdf" class="hidden">
+                        <div class="flex items-end space-x-2">
+
+                            <div class="flex space-x-1">
+                                <button type="button" id="file-button" class="p-2 text-gray-600 hover:text-parihar-500 hover:bg-gray-100  rounded-xl transition-colors">
+                                    <i class="fas fa-paperclip text-lg"></i>
+                                </button>
+                                <button type="button" id="mic-button" class="p-2 text-gray-600 hover:text-parihar-500 hover:bg-gray-100  rounded-xl transition-colors">
+                                    <i class="fas fa-microphone text-lg"></i>
+                                </button>
+                                <button type="button" id="qr-button" class="p-2 text-gray-600 hover:text-parihar-500 hover:bg-gray-100  rounded-xl transition-colors">
+                                    <i class="fas fa-qrcode text-lg"></i>
+                                </button>
+                            </div>
+
+                            <div class="flex-1 relative">
+                                <input type="text"
+                                       id="text-input"
+                                       class="w-full bg-gray-50  border border-gray-200  rounded-2xl px-4 py-2 pr-10 text-gray-900 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all duration-200"
+                                       placeholder="Message Junior CA..."
+                                       autocomplete="off">
+
+                                <button type="submit"
+                                        id="send-button"
+                                        class="absolute right-1 top-1/2 transform -translate-y-1/2 w-10 h-8 bg-gray-900 hover:bg-gray-800 disabled:bg-gray-400 text-white rounded-xl transition-all duration-200 flex items-center justify-center disabled:cursor-not-allowed">
+                                    <i class="fas fa-paper-plane text-sm"></i>
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <video id="qr-video" class="hidden" autoplay></video>
+    <script src="{% static 'js/jsQR.min.js' %}"></script>
+
+    <!-- ORIGINAL JS LOGIC (UNCHANGED, ONLY USING THE NEW COLORS ABOVE) -->
+    <script>
+        // Text-to-Speech function
+        function speakText(text, speechEnabled, language) {
+            if (!window.speechSynthesis || !speechEnabled) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = language;
+            utterance.rate = 1;
+            utterance.pitch = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        class ChatApp {
+            constructor() {
+                this.isSending = false;
+                this.currentSessionId = {{ active_session_id|default:"null" }};
+                this.isRecording = false;
+                this.recognition = null;
+                this.speechEnabled = true;
+                this.language = 'en-US';
+                this.initializeElements();
+                this.initializeSpeechRecognition();
+                this.initializeMobileMenu();
+                this.attachEventListeners();
+                this.updateButtonStates();
+                this.scrollToBottom();
+            }
+
+            initializeElements() {
+                this.messagesContainer = document.getElementById('messages-container');
+                this.emptyState = document.getElementById('empty-state');
+                this.chatForm = document.getElementById('chat-form');
+                this.textInput = document.getElementById('text-input');
+                this.fileInput = document.getElementById('file-input');
+                this.fileButton = document.getElementById('file-button');
+                this.micButton = document.getElementById('mic-button');
+                this.sendButton = document.getElementById('send-button');
+                this.newChatButton = document.getElementById('new-chat');
+                this.chatItems = document.querySelectorAll('.chat-item');
+                this.deleteButtons = document.querySelectorAll('.delete-chat-button');
+                this.qrButton = document.getElementById('qr-button');
+                this.qrVideo = document.getElementById('qr-video');
+                this.speechToggleButton = document.getElementById('speech-toggle-button');
+                this.sidebar = document.getElementById('sidebar');
+                this.sidebarOverlay = document.getElementById('sidebar-overlay');
+                this.mobileMenuButton = document.getElementById('mobile-menu-button');
+                this.closeSidebarButton = document.getElementById('close-sidebar-button');
+                this.languageToggleButton = document.getElementById('language-toggle-button');
+                this.languageLabel = document.getElementById('language-label');
+            }
+
+            initializeMobileMenu() {
+                this.mobileMenuButton.addEventListener('click', () => {
+                    this.sidebar.classList.remove('-translate-x-full');
+                    this.sidebarOverlay.classList.remove('hidden');
+                    this.mobileMenuButton.classList.add('hidden');
+                });
+
+                this.closeSidebarButton.addEventListener('click', () => {
+                    this.sidebar.classList.add('-translate-x-full');
+                    this.sidebarOverlay.classList.add('hidden');
+                    this.mobileMenuButton.classList.remove('hidden');
+                });
+
+                this.sidebarOverlay.addEventListener('click', () => {
+                    this.sidebar.classList.add('-translate-x-full');
+                    this.sidebarOverlay.classList.add('hidden');
+                    this.mobileMenuButton.classList.remove('hidden');
+                });
+            }
+
+            initializeSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = true;
+                    this.recognition.lang = this.language;
+                    this.recognition.onresult = (event) => {
+                        let transcript = '';
+                        for (let i = 0; i < event.results.length; i++) {
+                            const result = event.results[i][0];
+                            if (result.isFinal) {
+                                transcript = result.transcript;
+                                this.textInput.value = transcript;
+                                this.updateButtonStates();
+                            } else {
+                                this.textInput.value = result.transcript;
+                            }
+                        }
+                    };
+                    this.recognition.onend = () => {
+                        if (this.isRecording) {
+                            this.isRecording = false;
+                            this.micButton.classList.remove('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                            this.micButton.classList.add('text-gray-400', 'hover:text-parihar-500', 'hover:bg-parihar-50', 'dark:hover:bg-parihar-900/20');
+                            this.updateButtonStates();
+                            if (this.textInput.value.trim()) {
+                                this.handleSubmit(new Event('submit'));
+                            }
+                        }
+                    };
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.isRecording = false;
+                        this.micButton.classList.remove('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                        this.micButton.classList.add('text-gray-400', 'hover:text-parihar-500', 'hover:bg-parihar-50', 'dark:hover:bg-parihar-900/20');
+                        this.updateButtonStates();
+                        alert(this.language === 'en-US' ? `Speech recognition error: ${event.error}. Please try again.` : `वॉयस रिकग्निशन त्रुटि: ${event.error}। कृपया फिर से प्रयास करें।`);
+                    };
+                } else {
+                    console.warn('Speech recognition not supported in this browser.');
+                    this.micButton.disabled = true;
+                    this.micButton.title = this.language === 'en-US' ? 'Voice input not supported in this browser' : 'इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है।';
+                    this.micButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            attachEventListeners() {
+                this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+                this.fileButton.addEventListener('click', () => this.fileInput.click());
+                this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+                this.micButton.addEventListener('click', () => this.toggleRecording());
+                this.textInput.addEventListener('input', () => this.updateButtonStates());
+                this.qrButton.addEventListener('click', () => this.scanQRCode());
+                this.speechToggleButton.addEventListener('click', () => this.toggleSpeech());
+                this.languageToggleButton.addEventListener('click', () => this.toggleLanguage());
+                this.textInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSubmit(e);
+                    }
+                });
+                this.textInput.addEventListener('focus', () => {
+                    window.speechSynthesis.cancel();
+                });
+                this.newChatButton.addEventListener('click', () => {
+                    window.location.href = '/chat/';
+                });
+                this.chatItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.delete-chat-button')) {
+                            this.currentSessionId = item.dataset.sessionId;
+                            window.location.href = `/chat/?session_id=${this.currentSessionId}`;
+                        }
+                    });
+                });
+                this.deleteButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const sessionId = button.dataset.sessionId;
+                        this.handleDeleteSession(sessionId);
+                    });
+                });
+            }
+
+            toggleLanguage() {
+                this.language = this.language === 'en-US' ? 'hi-IN' : 'en-US';
+                this.languageLabel.textContent = this.language === 'en-US' ? 'EN' : 'HI';
+                this.languageToggleButton.title = `Toggle language (${this.language === 'en-US' ? 'English' : 'Hindi'})`;
+                this.textInput.placeholder = this.language === 'en-US' ? 'Message Junior CA...' : 'MessJunior CA को संदेश भेजें...age Junior CA...';
+                if (this.recognition) {
+                    this.recognition.lang = this.language;
+                }
+                localStorage.setItem('language', this.language);
+            }
+
+            toggleSpeech() {
+                this.speechEnabled = !this.speechEnabled;
+                this.speechToggleButton.classList.toggle('text-parihar-500', this.speechEnabled);
+                this.speechToggleButton.classList.toggle('bg-parihar-50', this.speechEnabled);
+                
+                this.speechToggleButton.title = this.speechEnabled ? 'Disable voice output' : 'Enable voice output';
+                this.speechToggleButton.innerHTML = `<i class="fas fa-volume-${this.speechEnabled ? 'up' : 'mute'}"></i>`;
+                if (!this.speechEnabled) {
+                    window.speechSynthesis.cancel();
+                }
+            }
+
+            toggleRecording() {
+                if (!this.recognition) {
+                    alert(this.language === 'en-US' ? 'Voice input is not supported in this browser.' : 'इस ब्राउज़र में वॉयस इनपुट समर्थित नहीं है।');
+                    return;
+                }
+                if (this.isRecording) {
+                    this.recognition.stop();
+                } else {
+                    if (this.isSending) return;
+                    this.isRecording = true;
+                    this.micButton.classList.remove('text-gray-400', 'hover:text-parihar-500', 'hover:bg-parihar-50', 'dark:hover:bg-parihar-900/20');
+                    this.micButton.classList.add('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                    this.textInput.value = '';
+                    this.updateButtonStates();
+                    try {
+                        this.recognition.start();
+                    } catch (error) {
+                        console.error('Error starting speech recognition:', error);
+                        this.isRecording = false;
+                        this.micButton.classList.remove('text-red-500', 'bg-red-50', 'dark:bg-red-900/20');
+                        this.micButton.classList.add('text-gray-400', 'hover:text-parihar-500', 'hover:bg-parihar-50', 'dark:hover:bg-parihar-900/20');
+                        this.updateButtonStates();
+                        alert(this.language === 'en-US' ? `Failed to start voice input: ${error.message}` : `वॉयस इनपुट शुरू करने में विफल: ${error.message}`);
+                    }
+                }
+            }
+
+            async scanQRCode() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                    this.qrVideo.srcObject = stream;
+                    this.qrVideo.classList.remove('hidden');
+                    this.qrVideo.classList.add('fixed', 'inset-0', 'w-full', 'h-full', 'object-cover', 'z-50');
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    const scanLoop = setInterval(async () => {
+                        canvas.width = this.qrVideo.videoWidth;
+                        canvas.height = this.qrVideo.videoHeight;
+                        context.drawImage(this.qrVideo, 0, 0, canvas.width, canvas.height);
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, canvas.width, canvas.height);
+                        if (code && code.data) {
+                            clearInterval(scanLoop);
+                            this.qrVideo.classList.add('hidden');
+                            this.qrVideo.classList.remove('fixed', 'inset-0', 'w-full', 'h-full', 'object-cover', 'z-50');
+                            this.qrVideo.srcObject.getTracks().forEach(track => track.stop());
+                            const driveUrl = code.data;
+                            const directUrl = this.convertDriveUrlToDirect(driveUrl);
+                            if (directUrl) {
+                                const fileBlob = await this.fetchPdfFromBackend(driveUrl);
+                                if (fileBlob) {
+                                    const base64 = await this.blobToBase64(fileBlob);
+                                    await this.sendMessage(null, {
+                                        data: base64,
+                                        mimeType: 'application/pdf',
+                                        name: 'Scanned_QR_Document.pdf'
+                                    });
+                                }
+                            } else {
+                                alert(this.language === 'en-US' ? '❌ Invalid Google Drive QR Code.' : '❌ अमान्य Google Drive QR कोड।');
+                            }
+                        }
+                    }, 500);
+                } catch (error) {
+                    console.error("Camera access error:", error);
+                    alert(this.language === 'en-US' ? "❌ Failed to access camera." : "❌ कैमरा तक पहुंचने में विफल।");
+                }
+            }
+
+            convertDriveUrlToDirect(url) {
+                try {
+                    const fileId = url.split("/d/")[1].split("/")[0];
+                    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            async fetchPdfFromBackend(qrUrl) {
+                try {
+                    const response = await fetch('/api/download_from_qr/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ qr_url: qrUrl })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        await this.sendMessage(null, {
+                            data: result.data,
+                            mimeType: result.mime_type,
+                            name: result.name
+                        });
+                    } else {
+                        alert(this.language === 'en-US' ? `❌ ${result.error}` : `❌ ${result.error}`);
+                    }
+                } catch (err) {
+                    alert(this.language === 'en-US' ? "❌ Failed to download from backend." : "❌ बैकएंड से डाउनलोड करने में विफल।");
+                    console.error(err);
+                }
+            }
+
+            async blobToBase64(blob) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const base64 = reader.result.split(',')[1];
+                        resolve(base64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            }
+
+            async handleDeleteSession(sessionId) {
+                const confirmMsg = this.language === 'en-US' ? 'Are you sure you want to delete this chat session?' : 'क्या आप वाकई इस चैट सत्र को हटाना चाहते हैं?';
+                if (!confirm(confirmMsg)) return;
+                try {
+                    const response = await fetch(`/api/chat/delete/${sessionId}/`, {
+                        method: 'DELETE',
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        if (this.currentSessionId === sessionId) {
+                            window.location.href = '/chat/';
+                        } else {
+                            const chatItem = document.querySelector(`.chat-item[data-session-id="${sessionId}"]`);
+                            if (chatItem) {
+                                chatItem.style.transform = 'translateX(-100%)';
+                                chatItem.style.opacity = '0';
+                                setTimeout(() => chatItem.remove(), 300);
+                            }
+                        }
+                    } else {
+                        alert(this.language === 'en-US' ? `Error: ${data.error}` : `त्रुटि: ${data.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error deleting session:', error);
+                    alert(this.language === 'en-US' ? 'Failed to delete chat session. Please try again.' : 'चैट सत्र हटाने में विफल। कृपया फिर से प्रयास करें।');
+                }
+            }
+
+            async handleSubmit(e) {
+                e.preventDefault();
+                const inputText = this.textInput.value.trim();
+                if (!inputText || this.isSending) return;
+                await this.sendMessage(inputText);
+            }
+
+            async handleFileUpload(e) {
+                const file = e.target.files[0];
+                if (!file || this.isSending) return;
+                const fileData = await this.fileToBase64(file);
+                await this.sendMessage(null, {
+                    data: fileData.data,
+                    mimeType: file.type,
+                    name: file.name
+                });
+                this.fileInput.value = '';
+            }
+
+            async sendMessage(text = null, file = null) {
+                if (this.isSending) return;
+                if (this.emptyState) {
+                    this.emptyState.style.display = 'none';
+                }
+                this.isSending = true;
+                this.updateButtonStates();
+                const loadingIndicator = document.querySelector('.loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.classList.remove('hidden');
+                    this.scrollToBottom();
+                }
+                try {
+                    const formData = new FormData();
+                    if (text) {
+                        formData.append('message', text);
+                    }
+                    if (file) {
+                        formData.append('file', JSON.stringify({
+                            mimeType: file.mimeType,
+                            data: file.data,
+                            name: file.name
+                        }));
+                    }
+                    if (this.currentSessionId) {
+                        formData.append('session_id', this.currentSessionId);
+                    }
+                    formData.append('language', this.language);
+                    const response = await fetch('/api/chat/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        if (data.response && this.speechEnabled) {
+                            speakText(data.response, this.speechEnabled, this.language);
+                        }
+                        window.location.href = this.currentSessionId ? `/chat/?session_id=${this.currentSessionId}` : `/chat/?session_id=${data.session_id}`;
+                    } else {
+                        alert(this.language === 'en-US' ? `Error: ${data.error}` : `त्रुटि: ${data.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert(this.language === 'en-US' ? 'Failed to send message. Please try again.' : 'संदेश भेजने में विफल। कृपया फिर से प्रयास करें।');
+                } finally {
+                    const loadingIndicator = document.querySelector('.loading-indicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.classList.add('hidden');
+                    }
+                    this.isSending = false;
+                    this.textInput.value = '';
+                    this.updateButtonStates();
+                    this.scrollToBottom();
+                    this.deleteButtons = document.querySelectorAll('.delete-chat-button');
+                    this.deleteButtons.forEach(button => {
+                        if (!button.hasListener) {
+                            button.hasListener = true;
+                            button.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const sessionId = button.dataset.sessionId;
+                                this.handleDeleteSession(sessionId);
+                            });
+                        }
+                    });
+                }
+            }
+
+            updateButtonStates() {
+                const hasText = this.textInput.value.trim().length > 0;
+                this.fileButton.disabled = this.isSending || this.isRecording;
+                this.micButton.disabled = this.isSending || !this.recognition;
+                this.qrButton.disabled = this.isSending || this.isRecording;
+                this.sendButton.disabled = this.isSending || !hasText || this.isRecording;
+                this.textInput.disabled = this.isSending || this.isRecording;
+                if (this.isSending) {
+                    this.sendButton.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    this.sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+                this.textInput.placeholder = this.isRecording
+                    ? (this.language === 'en-US' ? 'Listening...' : 'सुन रहा है...')
+                    : this.isSending
+                        ? (this.language === 'en-US' ? 'Sending...' : 'भेज रहा है...')
+                        : (this.language === 'en-US' ? 'Message Junior CA...' : 'MessJunior CA को संदेश भेजें...age Junior CA...');
+            }
+
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                }, 100);
+            }
+
+            async fileToBase64(file) {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const base64Data = e.target.result.split(',')[1];
+                        resolve({
+                            data: base64Data,
+                            mimeType: file.type,
+                            name: file.name
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new ChatApp();
+            const savedLanguage = localStorage.getItem('language');
+            if (savedLanguage && ['en-US', 'hi-IN'].includes(savedLanguage)) {
+                app.language = savedLanguage;
+                app.languageLabel.textContent = savedLanguage === 'en-US' ? 'EN' : 'HI';
+                app.languageToggleButton.title = `Toggle language (${savedLanguage === 'en-US' ? 'English' : 'Hindi'})`;
+                app.textInput.placeholder = savedLanguage === 'en-US' ? 'Message Junior CA...' : 'MessJunior CA को संदेश भेजें...age Junior CA...';
+                if (app.recognition) {
+                    app.recognition.lang = savedLanguage;
+                }
+            }
+        });
+
+      
+
+       
+    </script>
+    
+</body>
+</html>
