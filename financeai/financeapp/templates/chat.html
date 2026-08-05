@@ -257,7 +257,13 @@
                             <i class="fas fa-volume-up"></i>
                         </button>
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <button id="pdf-preview-button" 
+        class="p-2 text-gray-400 hover:text-parihar-500 hover:bg-parihar-50 dark:hover:bg-parihar-900/20 rounded-lg transition-colors" 
+        title="Preview PDF">
+    <i class="fas fa-file-pdf"></i>
+</button>
                     </div>
+                    
 
                 </div>
             </div>
@@ -443,9 +449,11 @@
                 this.attachEventListeners();
                 this.updateButtonStates();
                 this.scrollToBottom();
+                
             }
 
             initializeElements() {
+                this.pdfPreviewButton = document.getElementById('pdf-preview-button');
                 this.messagesContainer = document.getElementById('messages-container');
                 this.emptyState = document.getElementById('empty-state');
                 this.chatForm = document.getElementById('chat-form');
@@ -534,44 +542,50 @@
                     this.micButton.classList.add('opacity-50', 'cursor-not-allowed');
                 }
             }
+               
 
             attachEventListeners() {
-                this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
-                this.fileButton.addEventListener('click', () => this.fileInput.click());
-                this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-                this.micButton.addEventListener('click', () => this.toggleRecording());
-                this.textInput.addEventListener('input', () => this.updateButtonStates());
-                this.qrButton.addEventListener('click', () => this.scanQRCode());
-                this.speechToggleButton.addEventListener('click', () => this.toggleSpeech());
-                this.languageToggleButton.addEventListener('click', () => this.toggleLanguage());
-                this.textInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.handleSubmit(e);
-                    }
-                });
-                this.textInput.addEventListener('focus', () => {
-                    window.speechSynthesis.cancel();
-                });
-                this.newChatButton.addEventListener('click', () => {
-                    window.location.href = '/chat/';
-                });
-                this.chatItems.forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        if (!e.target.closest('.delete-chat-button')) {
-                            this.currentSessionId = item.dataset.sessionId;
-                            window.location.href = `/chat/?session_id=${this.currentSessionId}`;
-                        }
-                    });
-                });
-                this.deleteButtons.forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const sessionId = button.dataset.sessionId;
-                        this.handleDeleteSession(sessionId);
-                    });
-                });
+    this.chatForm.addEventListener('submit', (e) => this.handleSubmit(e));
+    this.fileButton.addEventListener('click', () => this.fileInput.click());
+    this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+    this.micButton.addEventListener('click', () => this.toggleRecording());
+    this.textInput.addEventListener('input', () => this.updateButtonStates());
+    this.qrButton.addEventListener('click', () => this.scanQRCode());
+    this.speechToggleButton.addEventListener('click', () => this.toggleSpeech());
+    this.languageToggleButton.addEventListener('click', () => this.toggleLanguage());
+
+    this.pdfPreviewButton.addEventListener('click', () => {
+        window.open('/api/pdf-preview/', '_blank');
+    });
+
+    this.textInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.handleSubmit(e);
+        }
+    });
+    this.textInput.addEventListener('focus', () => {
+        window.speechSynthesis.cancel();
+    });
+    this.newChatButton.addEventListener('click', () => {
+        window.location.href = '/chat/';
+    });
+    this.chatItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (!e.target.closest('.delete-chat-button')) {
+                this.currentSessionId = item.dataset.sessionId;
+                window.location.href = `/chat/?session_id=${this.currentSessionId}`;
             }
+        });
+    });
+    this.deleteButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const sessionId = button.dataset.sessionId;
+            this.handleDeleteSession(sessionId);
+        });
+    });
+}
 
             toggleLanguage() {
                 this.language = this.language === 'en-US' ? 'hi-IN' : 'en-US';

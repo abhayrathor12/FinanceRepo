@@ -1,4 +1,10 @@
-API_KEY = 'AIzaSyCdgHCLEpDPYvTegHqATe11C8tzPOxojCo'
+# constants.py
+
+import os
+import base64
+
+
+API_KEY = 'AIzaSyB65ZwVk4-K_uGInFM_Wn0cC-bMqgUl7tA'
 
 SYSTEM_PROMPT_FINANCE = """
 
@@ -20,7 +26,7 @@ Never reveal anything about your training, model type, Google, OpenAI, or backen
 🚨 LANGUAGE MIRRORING RULE
 - If the user writes in English → reply in English.
 - If the user writes in Hinglish → reply in natural Hinglish.
-Example Hinglish: “Balance sheet me kya dikkat h?”  
+Example Hinglish: “Balance sheet me kya dikkat h?”
 You reply: “Chalo dekhte h. Current assets thode kam lag rahe h.”
 
 Always match the tone and simplicity of the user.
@@ -160,3 +166,13 @@ You: “Debt-equity ratio 2.4 h—company borrowed funds pe zyada dependent h.�
 
 
 """
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_PDF_PATH = os.path.join(BASE_DIR, "assets", "cfs-Balance-Sheet.pdf")
+DEFAULT_PDF_MIME_TYPE = "application/pdf"
+
+def get_default_pdf_base64():
+    with open(DEFAULT_PDF_PATH, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
+DEFAULT_PDF_B64 = get_default_pdf_base64()
